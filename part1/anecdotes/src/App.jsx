@@ -31,13 +31,21 @@ const App = () => {
 
     return (
         <div>
-            <div>{anecdotes[selected]}</div>
+            <Title text="Anecdote of the day" />
+            <div style={{ marginBottom: "8px" }}>{anecdotes[selected]}</div>
+            <div style={{ marginBottom: "8px" }}>
+                <Votes votes={votes[selected]} />
+            </div>
+
             <div>
                 <Button handleClick={getRandomAnecdote} text="Next anecdote" />
                 <Button handleClick={handleVotes} text="Vote" />
             </div>
+
+            <Title text="Anecdote with most votes" />
+            <div style={{ marginBottom: "8px" }}>{anecdotes[votes.indexOf(Math.max(...votes))]}</div>
             <div>
-                <Votes votes={votes[selected]} />
+                <Votes votes={Math.max(...votes)} style={{ marginBottom: "8px" }}/>
             </div>
         </div>
     );
@@ -53,6 +61,10 @@ const Votes = ({ votes }) => {
             <span>This anecdote has {votes} votes</span>
         </div>
     );
+};
+
+const Title = ({ text }) => {
+    return <h1>{text}</h1>;
 };
 
 export default App;
