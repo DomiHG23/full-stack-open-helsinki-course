@@ -5,7 +5,15 @@ const App = () => {
     const [newName, setNewName] = useState("");
 
     const addPerson = (event) => {
+        // para evitar que el formulario realice su acción predeterminada al enviarse, que normalmente es recargar la página
         event.preventDefault();
+
+        console.log("button clicked", newName);
+        if (persons.some((person) => person.name === newName)) {
+            alert(`${newName} is already added to phonebook`);
+            return;
+        }
+
         const personObject = {
             name: newName,
             id: persons.length + 1,
@@ -34,7 +42,7 @@ const App = () => {
             <h2>Numbers</h2>
             <ul>
                 {persons.map((person) => (
-                    <li key={person}>{person.name}</li>
+                    <li key={person.id}>{person.name}</li>
                 ))}
             </ul>
         </div>
