@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import personService from "./services/persons";
 
 const App = () => {
     const [persons, setPersons] = useState([]);
@@ -29,19 +29,37 @@ const App = () => {
         }
 
         const personObject = {
-            name: newName,
-            number: newNumber,
-            id: persons.length + 1,
+            name: String(newName),
+            number: String(newNumber),
+            id: String(persons.length + 1),
         };
 
-        axios
-            .post("http://localhost:3001/persons", personObject)
-            .then((response) => {
-                console.log(response);
-                setPersons(persons.concat(personObject));
+        personService
+            .create(personObject)
+            .then((returnedPerson) => {
+                setPersons(persons.concat(returnedPerson));
                 setNewName("");
                 setNewNumber("");
+            })
+            .catch((error) => {
+                console.error("Error creating person:", error);
+                alert("Error creating person. Please try again.");
             });
+    };
+
+    const deletePerson = (id, name) => {
+        if (window.confirm(`Delete ${name}?`)) {
+            personService
+                .deletePerson(id)
+                .then(() => {
+                    setPersons(persons.filter((p) => p.id !== id));
+                    alert(`${name} deleted`);
+                })
+                .catch((error) => {
+                    console.error("Error deleting person:", error);
+                    alert("Error deleting person. Please try again.");
+                });
+        }
     };
 
     const handleNameChange = (event) => {
@@ -63,12 +81,33 @@ const App = () => {
                   person.name.toLowerCase().includes(filter.toLowerCase())
               );
 
+    const updateNumber = (id, newNumber) => {
+        const personToUpdate = persons.find((p) => p.id === id);
+        const updatedPerson = { ...personToUpdate, number: newNumber };
+        personService
+            .update(id, updatedPerson)
+            .then((returnedPerson) => {
+                setPersons(
+                    persons.map((person) =>
+                        person.id !== id ? person : returnedPerson
+                    )
+                );
+            })
+            .catch((error) => {
+                console.error("Error updating person:", error);
+                alert("Error updating person. Please try again.");
+            });
+    };
+
     useEffect(() => {
-        console.log("effect");
-        axios.get("http://localhost:3001/persons").then((response) => {
-            console.log("promise fulfilled");
-            setPersons(response.data);
-        });
+        personService
+            .getAll()
+            .then((initialPersons) => {
+                setPersons(initialPersons);
+            })
+            .catch((error) => {
+                console.error("Error fetching persons:", error);
+            });
     }, []); // El array vacío [] asegura que el efecto se ejecute solo una vez, al montar el componente
 
     return (
@@ -84,7 +123,7 @@ const App = () => {
                 handleNumberChange={handleNumberChange}
             />
             <h2>Numbers</h2>
-            <Persons persons={personsToShow} />
+            <Persons persons={personsToShow} deletePerson={deletePerson} updateNumber={updateNumber} />
         </div>
     );
 };
@@ -121,12 +160,27 @@ const PersonForm = ({
     );
 };
 
-const Persons = ({ persons }) => {
+const Persons = ({ persons, deletePerson, updateNumber }) => {
     return (
         <ul>
             {persons.map((person) => (
                 <li key={person.id}>
                     {person.name}: {person.number}
+                    <button
+                        onClick={() => deletePerson(person.id, person.name)}
+                    >
+                        delete
+                    </button>
+                    <button
+                        onClick={() => {
+                            const result = prompt("Enter new number:", person.number);
+                            if (result !== null) {
+                                updateNumber(person.id, result);
+                            }
+                        }}
+                    >
+                        update number
+                    </button>
                 </li>
             ))}
         </ul>
