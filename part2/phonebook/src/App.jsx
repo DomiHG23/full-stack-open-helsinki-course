@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import personService from "./services/persons";
+import "./index.css"; 
 
 const App = () => {
     const [persons, setPersons] = useState([]);
@@ -12,6 +13,7 @@ const App = () => {
     const [newName, setNewName] = useState("");
     const [newNumber, setNewNumber] = useState("");
     const [filter, setFilter] = useState("");
+    const [newNotification, setNewNotification] = useState(null);
 
     const addPerson = (event) => {
         // para evitar que el formulario realice su acción predeterminada al enviarse, que normalmente es recargar la página
@@ -40,6 +42,7 @@ const App = () => {
                 setPersons(persons.concat(returnedPerson));
                 setNewName("");
                 setNewNumber("");
+                handleNotificationChange(`Added ${returnedPerson.name}`);
             })
             .catch((error) => {
                 console.error("Error creating person:", error);
@@ -74,6 +77,13 @@ const App = () => {
         setFilter(event.target.value);
     };
 
+    const handleNotificationChange = (message) => {
+        setNewNotification(message);
+        setTimeout(() => {
+            setNewNotification(null);
+        }, 5000); // El mensaje se ocultará después de 5 segundos
+    };
+
     const personsToShow =
         filter === ""
             ? persons
@@ -92,6 +102,7 @@ const App = () => {
                         person.id !== id ? person : returnedPerson
                     )
                 );
+                handleNotificationChange(`Updated ${returnedPerson.name}'s number`);
             })
             .catch((error) => {
                 console.error("Error updating person:", error);
@@ -113,6 +124,7 @@ const App = () => {
     return (
         <div>
             <h2>Phonebook</h2>
+            <Notification message={newNotification} handleNotificationChange={handleNotificationChange} />
             <Filter filter={filter} handleFilterChange={handleFilterChange} />
             <h2>Add a new</h2>
             <PersonForm
@@ -133,6 +145,18 @@ const Filter = ({ filter, handleFilterChange }) => {
         <div>
             <p>Filter shown with </p>
             <input value={filter} onChange={handleFilterChange} />
+        </div>
+    );
+};
+
+const Notification = ({ message, handleNotificationChange }) => {
+    if (message === null) {
+        return null;
+    }
+    return (
+        <div className="notification">
+            {message}
+            <button onClick={() => handleNotificationChange(null)}>Close</button>
         </div>
     );
 };
