@@ -14,12 +14,12 @@ const App = () => {
     const [newNumber, setNewNumber] = useState("");
     const [filter, setFilter] = useState("");
     const [newNotification, setNewNotification] = useState(null);
+    const [type, setType] = useState("success"); // "success" or "error"
 
     const addPerson = (event) => {
         // para evitar que el formulario realice su acción predeterminada al enviarse, que normalmente es recargar la página
         event.preventDefault();
 
-        console.log("button clicked", newName);
         if (persons.some((person) => person.name === newName)) {
             alert(`${newName} is already added to phonebook as name`);
             return;
@@ -42,11 +42,12 @@ const App = () => {
                 setPersons(persons.concat(returnedPerson));
                 setNewName("");
                 setNewNumber("");
+                setType("notification-success");
                 handleNotificationChange(`Added ${returnedPerson.name}`);
             })
-            .catch((error) => {
-                console.error("Error creating person:", error);
-                alert("Error creating person. Please try again.");
+            .catch(() => {
+                setType("notification-error");
+                handleNotificationChange("Error creating person. Please try again.");
             });
     };
 
@@ -56,11 +57,13 @@ const App = () => {
                 .deletePerson(id)
                 .then(() => {
                     setPersons(persons.filter((p) => p.id !== id));
-                    alert(`${name} deleted`);
+                    setType("notification-success");
+                    handleNotificationChange(`${name} deleted`);
                 })
                 .catch((error) => {
                     console.error("Error deleting person:", error);
-                    alert("Error deleting person. Please try again.");
+                    setType("notification-error");
+                    handleNotificationChange("Error deleting person. Please try again.");
                 });
         }
     };
@@ -102,11 +105,13 @@ const App = () => {
                         person.id !== id ? person : returnedPerson
                     )
                 );
+                setType("notification-success");
                 handleNotificationChange(`Updated ${returnedPerson.name}'s number`);
             })
             .catch((error) => {
                 console.error("Error updating person:", error);
-                alert("Error updating person. Please try again.");
+                setType("notification-error");
+                handleNotificationChange("Error updating person. Please try again.");
             });
     };
 
@@ -118,13 +123,15 @@ const App = () => {
             })
             .catch((error) => {
                 console.error("Error fetching persons:", error);
+                setType("notification-error");
+                handleNotificationChange("Error loading phonebook data.");
             });
     }, []); // El array vacío [] asegura que el efecto se ejecute solo una vez, al montar el componente
 
     return (
         <div>
             <h2>Phonebook</h2>
-            <Notification message={newNotification} handleNotificationChange={handleNotificationChange} />
+            <Notification message={newNotification} handleNotificationChange={handleNotificationChange} type={type} />
             <Filter filter={filter} handleFilterChange={handleFilterChange} />
             <h2>Add a new</h2>
             <PersonForm
@@ -149,12 +156,14 @@ const Filter = ({ filter, handleFilterChange }) => {
     );
 };
 
-const Notification = ({ message, handleNotificationChange }) => {
+const Notification = ({ message, handleNotificationChange, type }) => {
     if (message === null) {
         return null;
     }
+    console.log("Notification message:", message, type);
+    
     return (
-        <div className="notification">
+        <div className={type}>
             {message}
             <button onClick={() => handleNotificationChange(null)}>Close</button>
         </div>
